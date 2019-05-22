@@ -1,5 +1,7 @@
+compiling_error.txt
 .pio
 .pioenvs
 .piolibdeps
 .clang_complete
 .gcc-flags.json
+*.pyc

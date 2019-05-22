@@ -43,7 +43,7 @@ class BinSerial:
         self.ser = serial.Serial(self.port_name, self.baud_rate, timeout=1)
 
         # Wait for initialization
-        time.sleep(2)
+        # time.sleep(2)
 
     def __del__(self):
         """Close serial link."""
