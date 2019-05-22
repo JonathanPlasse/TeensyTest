@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "binary_serial.hpp"
 
-uint32_t c = 32405;
+uint32_t c;
 
 void setup()
 {
@@ -15,6 +15,7 @@ void setup()
 
 void loop()
 {
-  // Serial.println("Hello World...");
-  // delay(1000);  // do not print too fast!
+  write_data(&c, sizeof(c));
+  c++;
+  delay(10);
 }
