@@ -8,4 +8,4 @@ if __name__ == "__main__":
     bser.write(['bool'], [True])
     while True:
         # print(bser.write(['int16'], [int(input('PWM: '))]))
-        print(bser.read(['uint16', 'uint16', 'int16', 'int16']))
+        print(bser.read(['float']*2))

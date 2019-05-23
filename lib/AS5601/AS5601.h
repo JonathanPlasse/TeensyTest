@@ -59,13 +59,15 @@ class AS5601
             wireChannel = i2cChannel;
         }
 
-        void initWire() {
+        void initWire(uint16_t step_threshold) {
           if (wireChannel == &Wire) {
             wireChannel->begin(I2C_MASTER,0x00,I2C_PINS_7_8, I2C_PULLUP_EXT, 100000);
           }
           else if (wireChannel == &Wire2) {
             wireChannel->begin(I2C_MASTER,0x00,I2C_PINS_3_4, I2C_PULLUP_EXT, 100000);
           }
+          angle = lastAngle = initAngle = this->getAngle();
+          threshold = step_threshold;
         }
 
 
@@ -195,9 +197,26 @@ class AS5601
             return this->readRaw16( AS5601::WordRegister::ANGLE );
         }
 
+        float read()
+        {
+          lastAngle = angle;
+          angle = this->getAngle();
+          if (lastAngle <= threshold && angle >= 4095 - threshold) {
+            nbRevolution--;
+          }
+          else if (angle <= threshold && lastAngle >= 4095 - threshold) {
+            nbRevolution++;
+          }
+          return angle - initAngle + nbRevolution * 4096;
+        }
+
     private:
 
         i2c_t3 *wireChannel;
+        uint16_t initAngle;
+        uint16_t angle, lastAngle;
+        int16_t nbRevolution;
+        uint16_t threshold;
 };
 
 
