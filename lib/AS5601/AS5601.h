@@ -57,10 +57,16 @@ class AS5601
         {
             // host I2C bus as master in the passed channel
             wireChannel = i2cChannel;
-            // wireChannel->begin();
         }
 
-        void initWire() {}
+        void initWire() {
+          if (wireChannel == &Wire) {
+            wireChannel->begin(I2C_MASTER,0x00,I2C_PINS_7_8, I2C_PULLUP_EXT, 100000);
+          }
+          else if (wireChannel == &Wire2) {
+            wireChannel->begin(I2C_MASTER,0x00,I2C_PINS_3_4, I2C_PULLUP_EXT, 100000);
+          }
+        }
 
 
         /* :: Low-Level Access :: */
