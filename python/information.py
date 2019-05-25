@@ -5,9 +5,7 @@ from binserial import BinSerial
 
 if __name__ == "__main__":
     bser = BinSerial("/dev/ttyACM0", 9600)
-    bser.write(['uint16']*5, [1, 2, 3, 4, 5])
-    print(bser.read(['uint16']*5))
-    # bser.write(['bool'], [True])
+    bser.write(['bool'], [True])
     # bser.write(['int16'], [int(input('PWM: '))])
-    # while True:
-    #     print(bser.read(['float']*2))
+    while True:
+        print(bser.read(['float']*4))
