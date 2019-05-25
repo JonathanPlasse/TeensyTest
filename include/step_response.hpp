@@ -7,9 +7,9 @@
 
 // Configuration structure for step response
 typedef struct {
-  uint8_t pwm;
-  uint8_t sample_time;
-  uint8_t nb_measure;
+  uint16_t pwm;
+  uint16_t sample_time;
+  uint16_t nb_measure;
   uint16_t nb_sample;
   uint16_t wait_time;
 } config_t;

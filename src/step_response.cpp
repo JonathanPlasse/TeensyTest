@@ -6,7 +6,7 @@ void step_response(Motor* motor, Encoder* encoder) {
   config_t config;
   measure_t measure = {0, 0, 0};
 
-  uint8_t nb_measure_done = 0;
+  uint16_t nb_measure_done = 0;
   uint16_t nb_sample_done = 0;
 
   uint32_t last_time;

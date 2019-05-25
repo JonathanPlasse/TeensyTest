@@ -151,7 +151,7 @@ class MotorModel(QWidget):
         bser = BinSerial(self.port_name, self.baud_rate)
 
         # Define the format of the structure of data sent
-        structFormatConfig = ['uint8', 'uint8', 'uint8', 'uint16', 'uint16']
+        structFormatConfig = ['uint16']*5
         structFormatMeasure = ['uint32', 'float', 'float']
 
         timestamps = np.zeros((self.nb_measure, self.nb_sample))
@@ -162,16 +162,12 @@ class MotorModel(QWidget):
         bser.write(structFormatConfig, [
             self.pwm, self.ts, self.nb_measure,
             self.nb_sample, self.wait_time])
-        bser.write(structFormatConfig, [
-            self.pwm, self.ts, self.nb_measure,
-            self.nb_sample, self.wait_time])
         print(bser.read(structFormatConfig))
         for i in range(self.nb_measure):
             self.progress_bar.setValue(i)
             for j in range(self.nb_sample):
                 timestamps[i, j], positions[i, j], speeds[i, j]\
                     = bser.read(structFormatMeasure)
-                print(timestamps[i, j], positions[i, j], speeds[i, j])
         self.progress_bar.setValue(self.nb_measure)
 
         self.speed = np.mean(speeds, axis=0)

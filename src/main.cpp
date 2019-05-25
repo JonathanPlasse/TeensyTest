@@ -42,7 +42,20 @@ void setup() {
   pinMode(13, OUTPUT);
   digitalWrite(13, HIGH);
 
+  // typedef struct {
+  //   uint16_t p1;
+  //   uint16_t p2;
+  //   uint16_t p3;
+  //   uint16_t p4;
+  //   uint16_t p5;
+  // } ping_t;
+  // ping_t ping;
+  //
+  // read_data(&ping, sizeof(ping));
+  // write_data(&ping, sizeof(ping));
+
   step_response(&left_motor, &left_encoder);
+  // step_response(&right_motor, &right_encoder);
 
   // read_data(&ping, sizeof(ping));
   // read_data(&pwm, sizeof(pwm));
