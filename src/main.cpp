@@ -54,8 +54,8 @@ void setup() {
   // read_data(&ping, sizeof(ping));
   // write_data(&ping, sizeof(ping));
 
-  step_response(&left_motor, &left_encoder);
-  // step_response(&right_motor, &right_encoder);
+  // step_response(&left_motor, &left_encoder);
+  step_response(&right_motor, &right_encoder);
 
   // read_data(&ping, sizeof(ping));
   // read_data(&pwm, sizeof(pwm));
