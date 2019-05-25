@@ -26,20 +26,20 @@ Encoder right_encoder(&right_as, &left_as, center_distance_motor, center_distanc
 // Initialization of the RST setting
 const uint8_t order = 2;
 
-float left_r[order+1] = {11.982290563982566, -21.150421835929734, 9.327423307345397};
-float left_s[order+1] = {1.0, -0.7274929189476966, -0.2725070810523034};
-float left_t[order+1] = {1.673893584123461, -1.514601548725231, 0.};
-float right_r[order+1] = {11.773902902000263, -20.782588412696175, 9.165207249826347};
-float right_s[order+1] = {1.0, -0.7274929189476966, -0.27250708105230337};
-float right_t[order+1] = {1.6447823913560964, -1.4882606522256616, 0.};
+float left_r[order+1] = {1.8827428713360554, -3.5398220258579505, 1.6615039332829569};
+float left_s[order+1] = {1.0, -0.951458020924246, -0.048541979075753916};
+float left_t[order+1] = {0.046497044003430535, -0.042072265242368484, 0.};
+float right_r[order+1] = {1.8499995170519505, -3.478259903669117, 1.6326082127041228};
+float right_s[order+1] = {1.0, -0.951458020924246, -0.048541979075753916};
+float right_t[order+1] = {0.04568839975989261, -0.04134057367293599, 0.};
 
-float min_command = -30, max_command = 30;
+float min_command = -70, max_command = 70;
 
 // Initialization of the system variables
-control_t left_control = {5000, 0, 0};
-control_t right_control = {5000, 0, 0};
+control_t left_control = {7000, 0, 0};
+control_t right_control = {7000, 0, 0};
 
-float error_threshold = 100;
+float error_threshold = 50;
 float pwm_threshold = 40;
 
 // Initialization of the RST

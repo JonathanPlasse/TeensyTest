@@ -101,11 +101,11 @@ class EasyRst(QWidget):
     def initControl(self):
         self.ts = 0.005
         # Right motor
-        self.k = 115
-        self.tau = 0.05
-        # Left motor
-        # self.k = 113
+        # self.k = 115
         # self.tau = 0.05
+        # Left motor
+        self.k = 113
+        self.tau = 0.05
 
         self.gd = cnt.tf(self.k, [self.tau, 1, 0]).sample(self.ts)
 
@@ -116,7 +116,7 @@ class EasyRst(QWidget):
         b_plus = np.ones(1)
         a_minus = zero(1)
         a_plus = zero(c)
-        a_m = P.polypow(zero(0.6), 2)
+        a_m = P.polypow(zero(0.95), 2)
         self.r, self.s, self.t =\
             map(poly2tf, calculate_rst(b_minus, b_plus, a_minus, a_plus, a_m,
                                        d=1, p=1))
