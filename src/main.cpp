@@ -64,16 +64,16 @@ uint8_t i_position = 0;
 // position_t setpoint_position[nb_move] = {{10, 0, 0}, {10, 10, 0}, {0, 10, 0}, {0, 0, 0}};
 // Go back and forth
 const uint8_t nb_move = 2;
-position_t setpoint_position[nb_move] = {{30, 0, 0}, {0, 0, M_PI}};
+position_t setpoint_position[nb_move] = {{30, 0, 0}, {0, 0, 0}};
 
 delta_move_t* delta_move;
 float step_threshold = 50;
 Setpoint setpoint(step_threshold, true, false, true);
 
-Ramp translation_ramp(20, 20, sample_time/1000.);
-Ramp rotation_ramp(5, 5, sample_time/1000.);
+Ramp translation_ramp(1000, 1000, sample_time/1000.);
+Ramp rotation_ramp(100, 100, sample_time/1000.);
 
-float command_scale = 80;
+float command_scale = 5;
 
 bool ping;
 
@@ -124,10 +124,10 @@ void control_system() {
   odometry.update(left_control.measurement, right_control.measurement);
 
   // Update goal point
-  // if (setpoint.isStopped()) {// && translation_ramp.isStopped() && rotation_ramp.isStopped()) {
-  //   i_position = (i_position+1)%nb_move;
-  //   setpoint.set_setpoint_position(&setpoint_position[i_position]);
-  // }
+  if (setpoint.isStopped()) {// && translation_ramp.isStopped() && rotation_ramp.isStopped()) {
+    i_position = (i_position+1)%nb_move;
+    setpoint.set_setpoint_position(&setpoint_position[i_position]);
+  }
   // Update setpoint
   delta_move = setpoint.update();
 
