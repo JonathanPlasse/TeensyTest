@@ -104,7 +104,7 @@ class EasyRst(QWidget):
         # self.k = 115
         # self.tau = 0.05
         # Left motor
-        self.k = 113
+        self.k = 112
         self.tau = 0.05
 
         self.gd = cnt.tf(self.k, [self.tau, 1, 0]).sample(self.ts)
