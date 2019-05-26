@@ -22,9 +22,9 @@ float cm2step(float cm) {
 }
 
 float step2rad(float step) {
-  return step * wheel_perimeter / resolution / center_distance * 2;
+  return step * wheel_perimeter / resolution / center_distance_motor * 2;
 }
 
 float rad2step(float rad) {
-  return rad / wheel_perimeter * resolution * center_distance / 2;
+  return rad / wheel_perimeter * resolution * center_distance_motor / 2;
 }

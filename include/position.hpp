@@ -2,18 +2,20 @@
 #define POSITION_H
 
 #include <stdint.h>
-
-// Count per revolution of encoder
-const uint32_t resolution = 1633;
+#include <math.h>
 
 // Center distance between the two wheel
-const float center_distance = 19.65;
+const float center_distance_motor = 14.4;
+const float center_distance_encoder = 24.1;
+
+// Count per revolution of encoder
+const uint32_t resolution = 4096;
 
 // Wheel diameter
-const float wheel_perimeter = 23.4;
+const float wheel_perimeter = 4.5*M_PI;
 
 // Wheel diameter ratio (left/right)
-const float wheel_ratio = 1.003;
+const float wheel_ratio = 1;
 
 // Position structure
 typedef struct {

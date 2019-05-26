@@ -8,14 +8,13 @@
 #include "rst.hpp"
 #include "control.hpp"
 #include "main.hpp"
+#include "odometry.hpp"
 
 // Motors
 Motor left_motor(28, 29), right_motor(31, 30);
 int16_t pwm;
 
 uint16_t threshold = 1023;
-
-float center_distance_motor = 144, center_distance_encoder = 241;
 
 i2c_t3* w = &Wire;
 i2c_t3* w2 = &Wire2;
@@ -36,11 +35,11 @@ float right_t[order+1] = {0.04568839975989261, -0.04134057367293599, 0.};
 float min_command = -70, max_command = 70;
 
 // Initialization of the system variables
-control_t left_control = {7000, 0, 0};
-control_t right_control = {7000, 0, 0};
+control_t left_control = {3000, 0, 0};
+control_t right_control = {3000, 0, 0};
 
 float error_threshold = 50;
-float pwm_threshold = 40;
+float pwm_threshold = 30;
 
 // Initialization of the RST
 Rst left_rst(&left_control, min_command, max_command,
@@ -51,6 +50,26 @@ Rst right_rst(&right_control, min_command, max_command,
 // Initialization for the timer
 uint8_t sample_time = 5;
 uint32_t time, last_time;
+
+// Initialization of Odometry
+Odometry odometry;
+
+// Initialization of Setpoint
+uint8_t i_position = 0;
+
+// 8 move
+// const uint8_t nb_move = 8;
+// position_t setpoint_position[nb_move] = {{30, 0, 0}, {30, 30, 1.57}, {0, 30, 3.14}, {0, 0, -1.57}, {0, -30, 0}, {-30, -30, 1.57}, {-30, 0, 3.14}, {0, 0, -1.57}};
+// Go back and forth
+const uint8_t nb_move = 2;
+position_t setpoint_position[nb_move] = {{100, 0, 0}, {0, 0, M_PI}};
+
+delta_move_t* delta_move;
+float step_threshold = 30;
+Setpoint setpoint(step_threshold, true, false, true);
+
+Ramp translation_ramp(100, 100, sample_time/1000.);
+Ramp rotation_ramp(5, 5, sample_time/1000.);
 
 bool ping;
 
@@ -69,6 +88,10 @@ void setup() {
 
   // step_response(&left_motor, &left_encoder);
   // step_response(&right_motor, &right_encoder);
+
+  // Set position pointer to Setpoint
+  setpoint.set_current_position(odometry.get_position());
+  setpoint.set_setpoint_position(&setpoint_position[i_position]);
 
   read_data(&ping, sizeof(ping));
 }
@@ -93,15 +116,36 @@ void control_system() {
   left_control.measurement = left_encoder.read();
   right_control.measurement = right_encoder.read();
 
+  // Odometry
+  odometry.update(left_control.measurement, right_control.measurement);
+
+  // Update goal point
+  if (setpoint.isStopped() && translation_ramp.isStopped() && rotation_ramp.isStopped()) {
+    i_position = (i_position+1)%nb_move;
+    setpoint.set_setpoint_position(&setpoint_position[i_position]);
+  }
+  // Update setpoint
+  delta_move = setpoint.update();
+
+  translation_ramp.compute(&delta_move->delta_translation);
+  rotation_ramp.compute(&delta_move->delta_rotation);
+
   // Debug
   static uint8_t c = 10;
   if (c++ == 10) {
-    write_data(&right_control.command, sizeof(right_control.command));
-    write_data(&right_control.measurement, sizeof(right_control.measurement));
-    write_data(&left_control.command, sizeof(left_control.command));
-    write_data(&left_control.measurement, sizeof(left_control.measurement));
+    // write_data(&right_control.command, sizeof(right_control.command));
+    // write_data(&right_control.measurement, sizeof(right_control.measurement));
+    // write_data(&left_control.command, sizeof(left_control.command));
+    // write_data(&left_control.measurement, sizeof(left_control.measurement));
+    write_data(odometry.get_position(), sizeof(position_t));
     c = 0;
   }
+
+  // Update reference
+  left_control.reference = left_control.measurement
+    + cm2step(delta_move->delta_translation)*5 - rad2step(delta_move->delta_rotation)*5;
+  right_control.reference = right_control.measurement
+    + cm2step(delta_move->delta_translation)*5 + rad2step(delta_move->delta_rotation)*5;
 
   // Compute control command
   left_rst.compute();
