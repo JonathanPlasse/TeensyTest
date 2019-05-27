@@ -27,14 +27,14 @@ Encoder right_encoder(&right_as, &left_as, center_distance_motor, center_distanc
 // Initialization of the RST setting
 const uint8_t order = 2;
 
-float left_r[order+1] = {1.8995530755444132, -3.571427579660254, 1.6763387898301263};
-float left_s[order+1] = {1.0, -0.9514580209242461, -0.04854197907575391};
-float left_t[order+1] = {0.046912196182032594, -0.04244791046774678, 0.};
-float right_r[order+1] = {1.8499995170519505, -3.478259903669117, 1.6326082127041228};
-float right_s[order+1] = {1.0, -0.951458020924246, -0.048541979075753916};
-float right_t[order+1] = {0.04568839975989261, -0.04134057367293599, 0.};
+float left_r[order+1] = {2.7299515119229842, -5.216424762976402, 2.490821077140374};
+float left_s[order+1] = {1.0, -0.9511804372585831, -0.04881956274141689};
+float left_t[order+1] = {0.06741545714816008, -0.06306763106120346, 0.};
+float right_r[order+1] = {2.7299515119229842, -5.216424762976402, 2.490821077140374};
+float right_s[order+1] = {1.0, -0.9511804372585831, -0.04881956274141689};
+float right_t[order+1] = {0.06741545714816008, -0.06306763106120346, 0.};
 
-float min_command = -70, max_command = 70;
+float min_command = -50, max_command = 50;
 
 // Initialization of the system variables
 control_t left_control = {0, 0, 0};
@@ -64,16 +64,18 @@ uint8_t i_position = 0;
 // position_t setpoint_position[nb_move] = {{10, 0, 0}, {10, 10, 0}, {0, 10, 0}, {0, 0, 0}};
 // Go back and forth
 const uint8_t nb_move = 2;
-position_t setpoint_position[nb_move] = {{30, 0, 0}, {0, 0, 0}};
+position_t setpoint_position[nb_move] = {{30, 0, M_PI_2}, {0, 0, 0}};
 
 delta_move_t* delta_move;
 float step_threshold = 50;
 Setpoint setpoint(step_threshold, true, false, true);
 
-Ramp translation_ramp(1000, 1000, sample_time/1000.);
-Ramp rotation_ramp(100, 100, sample_time/1000.);
+const uint8_t every_x = 5;
 
-float command_scale = 5;
+Ramp translation_ramp(1000, 1000, sample_time/1000.*every_x);
+Ramp rotation_ramp(1, 1, sample_time/1000.*every_x);
+
+const float command_scale = 10;
 
 bool ping;
 
@@ -97,7 +99,7 @@ void setup() {
   setpoint.set_current_position(odometry.get_position());
   setpoint.set_setpoint_position(&setpoint_position[i_position]);
 
-  read_data(&ping, sizeof(ping));
+  // read_data(&ping, sizeof(ping));
 }
 
 void loop() {
@@ -123,16 +125,36 @@ void control_system() {
   // Odometry
   odometry.update(left_control.measurement, right_control.measurement);
 
-  // Update goal point
-  if (setpoint.isStopped()) {// && translation_ramp.isStopped() && rotation_ramp.isStopped()) {
-    i_position = (i_position+1)%nb_move;
-    setpoint.set_setpoint_position(&setpoint_position[i_position]);
-  }
-  // Update setpoint
-  delta_move = setpoint.update();
+  // Debug
+  // static uint8_t x = every_x;
+  // if (x++ == every_x) {
+  //   // Update goal point
+  //   if (setpoint.isStopped()) {// && translation_ramp.isStopped() && rotation_ramp.isStopped()) {
+  //     i_position = (i_position+1)%nb_move;
+  //     setpoint.set_setpoint_position(&setpoint_position[i_position]);
+  //   }
+  //   // Update setpoint
+  //   delta_move = setpoint.update();
+  //
+  //   translation_ramp.compute(&delta_move->delta_translation);
+  //   rotation_ramp.compute(&delta_move->delta_rotation);
+  //
+  //   // Update reference
+  //   left_control.reference = left_control.measurement
+  //     + cm2step(delta_move->delta_translation)*command_scale - rad2step(delta_move->delta_rotation)*command_scale;
+  //   right_control.reference = right_control.measurement
+  //     + cm2step(delta_move->delta_translation)*command_scale + rad2step(delta_move->delta_rotation)*command_scale;
+  //
+  //   x = 0;
+  // }
 
-  translation_ramp.compute(&delta_move->delta_translation);
-  rotation_ramp.compute(&delta_move->delta_rotation);
+  // Compute control command
+  left_rst.compute();
+  right_rst.compute();
+
+  // Apply the command on the motors
+  left_motor.set_pwm(left_control.command);
+  right_motor.set_pwm(right_control.command);
 
   // Debug
   static uint8_t c = 10;
@@ -144,18 +166,4 @@ void control_system() {
     write_data(odometry.get_position(), sizeof(position_t));
     c = 0;
   }
-
-  // Update reference
-  left_control.reference = left_control.measurement
-    + cm2step(delta_move->delta_translation)*command_scale - rad2step(delta_move->delta_rotation)*command_scale;
-  right_control.reference = right_control.measurement
-    + cm2step(delta_move->delta_translation)*command_scale + rad2step(delta_move->delta_rotation)*command_scale;
-
-  // Compute control command
-  left_rst.compute();
-  right_rst.compute();
-
-  // Apply the command on the motors
-  left_motor.set_pwm(left_control.command);
-  right_motor.set_pwm(right_control.command);
 }

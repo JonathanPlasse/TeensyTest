@@ -12,7 +12,7 @@ void Setpoint::set_current_position(const position_t* current_position) {
 void Setpoint::set_setpoint_position(const position_t* setpoint_position) {
   _setpoint_position = setpoint_position;
   if (_orient) {
-    _state = ORIENT;
+    _state = TURN;
   }
   else {
     _state = MOVE;
