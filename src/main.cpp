@@ -70,12 +70,10 @@ delta_move_t* delta_move;
 float step_threshold = 50;
 Setpoint setpoint(step_threshold, true, false, true);
 
-const uint8_t every_x = 5;
-
 Ramp translation_ramp(1000, 1000, sample_time/1000.*every_x);
 Ramp rotation_ramp(1, 1, sample_time/1000.*every_x);
 
-const float command_scale = 10;
+const float command_scale = 20;
 
 bool ping;
 
@@ -125,28 +123,22 @@ void control_system() {
   // Odometry
   odometry.update(left_control.measurement, right_control.measurement);
 
-  // Debug
-  // static uint8_t x = every_x;
-  // if (x++ == every_x) {
-  //   // Update goal point
-  //   if (setpoint.isStopped()) {// && translation_ramp.isStopped() && rotation_ramp.isStopped()) {
-  //     i_position = (i_position+1)%nb_move;
-  //     setpoint.set_setpoint_position(&setpoint_position[i_position]);
-  //   }
-  //   // Update setpoint
-  //   delta_move = setpoint.update();
-  //
-  //   translation_ramp.compute(&delta_move->delta_translation);
-  //   rotation_ramp.compute(&delta_move->delta_rotation);
-  //
-  //   // Update reference
-  //   left_control.reference = left_control.measurement
-  //     + cm2step(delta_move->delta_translation)*command_scale - rad2step(delta_move->delta_rotation)*command_scale;
-  //   right_control.reference = right_control.measurement
-  //     + cm2step(delta_move->delta_translation)*command_scale + rad2step(delta_move->delta_rotation)*command_scale;
-  //
-  //   x = 0;
-  // }
+  // Update goal point
+  if (setpoint.isStopped()) {// && translation_ramp.isStopped() && rotation_ramp.isStopped()) {
+    i_position = (i_position+1)%nb_move;
+    setpoint.set_setpoint_position(&setpoint_position[i_position]);
+  }
+  // Update setpoint
+  delta_move = setpoint.update();
+
+  translation_ramp.compute(&delta_move->delta_translation);
+  rotation_ramp.compute(&delta_move->delta_rotation);
+
+  // Update reference
+  left_control.reference = left_control.measurement
+    + cm2step(delta_move->delta_translation)*command_scale - rad2step(delta_move->delta_rotation)*command_scale;
+  right_control.reference = right_control.measurement
+    + cm2step(delta_move->delta_translation)*command_scale + rad2step(delta_move->delta_rotation)*command_scale;
 
   // Compute control command
   left_rst.compute();
