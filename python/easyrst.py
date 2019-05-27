@@ -107,19 +107,35 @@ class EasyRst(QWidget):
         self.k = 115
         self.tau = 0.075
 
-        self.gd = cnt.tf(self.k, [self.tau, 1, 0]).sample(self.ts)
+        # Position control
+        # self.gd = cnt.tf(self.k, [self.tau, 1, 0]).sample(self.ts)
+        #
+        # c = np.exp(-self.ts/self.tau)
+        #
+        # b_minus = self.k*np.array([self.ts-self.tau*(1-c),
+        #                            self.tau*(1-c)-c*self.ts])
+        # b_plus = np.ones(1)
+        # a_minus = zero(1)
+        # a_plus = zero(c)
+        # a_m = P.polypow(zero(0.95), 2)
+        # self.r, self.s, self.t =\
+        #     map(poly2tf, calculate_rst(b_minus, b_plus, a_minus, a_plus, a_m,
+        #                                d=1, p=1))
+
+        # Speed control
+        self.gd = cnt.tf(self.k, [self.tau, 1]).sample(self.ts)
 
         c = np.exp(-self.ts/self.tau)
 
-        b_minus = self.k*np.array([self.ts-self.tau*(1-c),
-                                   self.tau*(1-c)-c*self.ts])
+        b_minus = np.ones(1)*self.k*(1-np.exp(-self.ts/self.tau))
         b_plus = np.ones(1)
-        a_minus = zero(1)
+        a_minus = np.ones(1)
         a_plus = zero(c)
-        a_m = P.polypow(zero(0.95), 2)
+        a_m = zero(0.7)
         self.r, self.s, self.t =\
-            map(poly2tf, calculate_rst(b_minus, b_plus, a_minus, a_plus, a_m,
-                                       d=1, p=1))
+           map(poly2tf, calculate_rst(b_minus, b_plus, a_minus, a_plus, a_m,
+                                      d=1, p=1))
+
         self.time = np.linspace(0, 0.995, 200)
 
     def initUI(self):
