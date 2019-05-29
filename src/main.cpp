@@ -23,6 +23,8 @@ i2c_t3* w2 = &Wire2;
 AS5601 left_as(w), right_as(w2);
 Encoder left_encoder(&left_as, &right_as, center_distance_motor, center_distance_encoder);
 Encoder right_encoder(&right_as, &left_as, center_distance_motor, center_distance_encoder);
+float left_position, right_position;
+float last_left_position, last_right_position;
 
 // Initialization of the RST setting
 const uint8_t order = 1;
@@ -37,7 +39,7 @@ float right_t[order+1] = {0.04044927428889516, -0.037840578636721245};
 float min_command = -255, max_command = 255;
 
 // Initialization of the system variables
-control_t left_control = {0, 0, 0};
+control_t left_control = {100, 0, 0};
 control_t right_control = {0, 0, 0};
 
 float error_threshold = 0;
@@ -70,8 +72,8 @@ delta_move_t* delta_move;
 float step_threshold = 50;
 Setpoint setpoint(step_threshold, true, false, true);
 
-Ramp translation_ramp(1000, 1000, sample_time/1000.*every_x);
-Ramp rotation_ramp(1, 1, sample_time/1000.*every_x);
+Ramp translation_ramp(1000, 1000, sample_time/1000.);
+Ramp rotation_ramp(1, 1, sample_time/1000.);
 
 float translation_speed;
 float rotation_speed;
@@ -120,26 +122,32 @@ void timer(uint32_t time, uint8_t sample_time) {
 
 void control_system() {
   // Read motor position
-  left_control.measurement = left_encoder.read();
-  right_control.measurement = right_encoder.read();
+  last_left_position = left_position;
+  last_right_position = right_position;
+  left_position = left_encoder.read();
+  right_position = right_encoder.read();
+  // Update speed measure
+  left_control.measurement = (left_position-last_left_position)/sample_time*1000;
+  right_control.measurement = (right_position-last_right_position)/sample_time*1000;
 
   // Odometry
-  odometry.update(left_control.measurement, right_control.measurement);
+  odometry.update(left_position, right_position);
 
-  // Update goal point
-  if (setpoint.isStopped()) {// && translation_ramp.isStopped() && rotation_ramp.isStopped()) {
-    i_position = (i_position+1)%nb_move;
-    setpoint.set_setpoint_position(&setpoint_position[i_position]);
-  }
-  // Update setpoint
-  delta_move = setpoint.update();
-
-  translation_speed = translation_ramp.compute(delta_move->delta_translation);
-  rotation_speed = rotation_ramp.compute(delta_move->delta_rotation);
-
-  // Update reference
-  left_control.reference = cm2step(translation_speed) - rad2step(rotation_speed);
-  right_control.reference = cm2step(translation_speed) + rad2step(rotation_speed);
+  // // Update goal point
+  // if (setpoint.isStopped()) {// && translation_ramp.isStopped() && rotation_ramp.isStopped()) {
+  //   i_position = (i_position+1)%nb_move;
+  //   setpoint.set_setpoint_position(&setpoint_position[i_position]);
+  // }
+  //
+  // // Update setpoint
+  // delta_move = setpoint.update();
+  //
+  // translation_speed = translation_ramp.compute(delta_move->delta_translation);
+  // rotation_speed = rotation_ramp.compute(delta_move->delta_rotation);
+  //
+  // // Update reference
+  // left_control.reference = cm2step(translation_speed) - rad2step(rotation_speed);
+  // right_control.reference = cm2step(translation_speed) + rad2step(rotation_speed);
 
   // Compute control command
   left_rst.compute();
