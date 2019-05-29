@@ -25,16 +25,16 @@ Encoder left_encoder(&left_as, &right_as, center_distance_motor, center_distance
 Encoder right_encoder(&right_as, &left_as, center_distance_motor, center_distance_encoder);
 
 // Initialization of the RST setting
-const uint8_t order = 2;
+const uint8_t order = 1;
 
-float left_r[order+1] = {2.7299515119229842, -5.216424762976402, 2.490821077140374};
-float left_s[order+1] = {1.0, -0.9511804372585831, -0.04881956274141689};
-float left_t[order+1] = {0.06741545714816008, -0.06306763106120346, 0.};
-float right_r[order+1] = {2.7299515119229842, -5.216424762976402, 2.490821077140374};
-float right_s[order+1] = {1.0, -0.9511804372585831, -0.04881956274141689};
-float right_t[order+1] = {0.06741545714816008, -0.06306763106120346, 0.};
+float left_r[order+1] = {0.04044927428889516, -0.037840578636721245};
+float left_s[order+1] = {1.0, -1.0};
+float left_t[order+1] = {0.04044927428889516, -0.037840578636721245};
+float right_r[order+1] = {0.04044927428889516, -0.037840578636721245};
+float right_s[order+1] = {1.0, -1.0};
+float right_t[order+1] = {0.04044927428889516, -0.037840578636721245};
 
-float min_command = -50, max_command = 50;
+float min_command = -255, max_command = 255;
 
 // Initialization of the system variables
 control_t left_control = {0, 0, 0};
@@ -72,6 +72,9 @@ Setpoint setpoint(step_threshold, true, false, true);
 
 Ramp translation_ramp(1000, 1000, sample_time/1000.*every_x);
 Ramp rotation_ramp(1, 1, sample_time/1000.*every_x);
+
+float translation_speed;
+float rotation_speed;
 
 const float command_scale = 20;
 
@@ -131,14 +134,12 @@ void control_system() {
   // Update setpoint
   delta_move = setpoint.update();
 
-  translation_ramp.compute(&delta_move->delta_translation);
-  rotation_ramp.compute(&delta_move->delta_rotation);
+  translation_speed = translation_ramp.compute(delta_move->delta_translation);
+  rotation_speed = rotation_ramp.compute(delta_move->delta_rotation);
 
   // Update reference
-  left_control.reference = left_control.measurement
-    + cm2step(delta_move->delta_translation)*command_scale - rad2step(delta_move->delta_rotation)*command_scale;
-  right_control.reference = right_control.measurement
-    + cm2step(delta_move->delta_translation)*command_scale + rad2step(delta_move->delta_rotation)*command_scale;
+  left_control.reference = cm2step(translation_speed) - rad2step(rotation_speed);
+  right_control.reference = cm2step(translation_speed) + rad2step(rotation_speed);
 
   // Compute control command
   left_rst.compute();
