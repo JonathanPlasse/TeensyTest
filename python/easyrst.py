@@ -34,15 +34,20 @@ def poly2tf(p):
 
 
 def calculate_rst(b_minus, b_plus, a_minus, a_plus, a_m,
-                  a0=np.ones(1), d=1, p=0):
+                  a0=np.ones(1), d=1, p=0, r_e=0):
     """Calculate the coefficient of the rst"""
     perturbation = P.polypow(zero(1), p)
     s2, r0 = solve_diophantine(P.polymul(perturbation, a_minus),
                                P.polymul(delay(d), b_minus), P.polymul(a_m, a0))
-    t0 = a0 * sum(a_m) / sum(b_minus)
+    b_m_plus, _ = solve_diophantine(P.polymul(delay(d), b_minus),
+                                    P.polypow(zero(1), r_e+1), a_m)
+    t0 = P.polymul(a0, b_m_plus)
     r = P.polymul(r0, a_plus)
     s = P.polymul(s2, P.polymul(b_plus, perturbation))
     t = P.polymul(t0, a_plus)
+
+
+    print("Bm+ = ", ", ".join(map(str, b_m_plus)))
 
     print("R = ", ", ".join(map(str, r)))
     print("S = ", ", ".join(map(str, s)))
@@ -135,7 +140,7 @@ class EasyRst(QWidget):
         a0 = np.ones(1)
         self.r, self.s, self.t =\
             map(poly2tf, calculate_rst(b_minus, b_plus, a_minus, a_plus, a_m,
-                                       a0, d=1, p=1))
+                                       a0, d=1, p=1, r_e=0))
 
         self.time = np.linspace(0, 0.995, 200)
 
