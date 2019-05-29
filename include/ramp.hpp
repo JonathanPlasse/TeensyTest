@@ -11,7 +11,7 @@ public:
   bool isStopped();
 
   // Compute speed ramp
-  void compute(float* delta_position);
+  float compute(float delta_position);
 
 private:
   float _filter_limit(float value, float limit);
