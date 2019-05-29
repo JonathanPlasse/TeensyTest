@@ -39,7 +39,7 @@ float right_t[order+1] = {0.04044927428889516, -0.037840578636721245};
 float min_command = -255, max_command = 255;
 
 // Initialization of the system variables
-control_t left_control = {100, 0, 0};
+control_t left_control = {200, 0, 0};
 control_t right_control = {0, 0, 0};
 
 float error_threshold = 0;
@@ -52,7 +52,7 @@ Rst right_rst(&right_control, min_command, max_command,
          error_threshold, pwm_threshold);
 
 // Initialization for the timer
-uint8_t sample_time = 5;
+uint8_t sample_time = 20;
 uint32_t time, last_time;
 
 // Initialization of Odometry
@@ -95,7 +95,7 @@ void setup() {
   pinMode(13, OUTPUT);
   digitalWrite(13, HIGH);
 
-  // step_response(&left_motor, &left_encoder);
+  step_response(&left_motor, &left_encoder);
   // step_response(&right_motor, &right_encoder);
 
   // Set position pointer to Setpoint
@@ -107,7 +107,7 @@ void setup() {
 
 void loop() {
   // Execute timer
-  timer(millis(), sample_time);
+  // timer(millis(), sample_time);
 }
 
 void timer(uint32_t time, uint8_t sample_time) {
