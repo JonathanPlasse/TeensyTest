@@ -16,6 +16,7 @@
 Motor left_motor(28, 29), right_motor(31, 30);
 int16_t pwm;
 
+// Encoders
 uint16_t threshold = 1023;
 
 i2c_t3* w = &Wire;
@@ -72,8 +73,8 @@ delta_move_t* delta_move;
 float step_threshold = 50;
 Setpoint setpoint(step_threshold, true, false, true);
 
-Ramp translation_ramp(1000, 1000, sample_time/1000.);
-Ramp rotation_ramp(1, 1, sample_time/1000.);
+Ramp translation_ramp(50, 50, sample_time/1000.);
+Ramp rotation_ramp(2, 2, sample_time/1000.);
 
 float translation_speed;
 float rotation_speed;
