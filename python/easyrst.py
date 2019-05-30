@@ -46,9 +46,6 @@ def calculate_rst(b_minus, b_plus, a_minus, a_plus, a_m,
     s = P.polymul(s2, P.polymul(b_plus, perturbation))
     t = P.polymul(t0, a_plus)
 
-
-    print("Bm+ = ", ", ".join(map(str, b_m_plus)))
-
     print("R = ", ", ".join(map(str, r)))
     print("S = ", ", ".join(map(str, s)))
     print("T = ", ", ".join(map(str, t)))
