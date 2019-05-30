@@ -76,7 +76,7 @@ float rotation_threshold = 0.02;
 Setpoint setpoint(translation_threshold, rotation_threshold, true, false, true);
 
 Ramp translation_ramp(200, 200, sample_time/1000.);
-Ramp rotation_ramp(5, 5, sample_time/1000.);
+Ramp rotation_ramp(7, 7, sample_time/1000.);
 
 float translation_speed;
 float rotation_speed;
@@ -149,12 +149,6 @@ void control_system() {
   // Odometry
   odometry.update(left_as.read(), right_as.read());
 
-  // // Update goal point
-  if (setpoint.isStopped()) {
-    i_position = (i_position+1)%nb_move;
-    setpoint.set_setpoint_position(&setpoint_position[i_position]);
-  }
-
   // Update setpoint
   delta_move = setpoint.update(translation_ramp.isStopped(), rotation_ramp.isStopped());
 
@@ -173,6 +167,13 @@ void control_system() {
   left_motor.set_pwm(left_control.command);
   right_motor.set_pwm(right_control.command);
 
+
+
+  // Update goal point
+  if (setpoint.isStopped()) {
+    i_position = (i_position+1)%nb_move;
+    setpoint.set_setpoint_position(&setpoint_position[i_position]);
+  }
   // Debug
   static uint8_t c = 10;
   if (c++ == 10) {
