@@ -4,7 +4,7 @@
 from binserial import BinSerial
 
 if __name__ == "__main__":
-    bser = BinSerial("/dev/ttyACM0", 9600)
+    bser = BinSerial("/dev/ttyACM1", 9600)
     bser.write(['float']*3+['bool'], [0, 0, 0, True])
     while True:
         # print(bser.read(['float']*3+['bool']))

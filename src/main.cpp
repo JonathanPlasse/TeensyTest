@@ -72,11 +72,11 @@ bool init_bool, stop_bool;
 // position_t setpoint_position[nb_move] = {{20, 0, -M_PI_2}, {0, 0, 0}};
 
 delta_move_t* delta_move;
-float translation_threshold = 0.2;
+float translation_threshold = 2;
 float rotation_threshold = 0.02;
 Setpoint setpoint(translation_threshold, rotation_threshold, true, true, true);
 
-Ramp translation_ramp(200, 200, sample_time/1000.);
+Ramp translation_ramp(2000, 2000, sample_time/1000.);
 Ramp rotation_ramp(2, 10, sample_time/1000.);
 
 float translation_speed;
@@ -176,8 +176,8 @@ void control_system() {
   rotation_speed = rotation_ramp.compute(delta_move->delta_rotation);
 
   // Update reference
-  left_control.reference = cm2step_motor(translation_speed)/speed_scale - rad2step_motor(rotation_speed)/speed_scale;
-  right_control.reference = cm2step_motor(translation_speed)/speed_scale + rad2step_motor(rotation_speed)/speed_scale;
+  left_control.reference = mm2step_motor(translation_speed)/speed_scale - rad2step_motor(rotation_speed)/speed_scale;
+  right_control.reference = mm2step_motor(translation_speed)/speed_scale + rad2step_motor(rotation_speed)/speed_scale;
 
   // Compute control command
   left_rst.compute();
