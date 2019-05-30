@@ -53,7 +53,7 @@ Rst right_rst(&right_control, min_command, max_command,
          error_threshold, pwm_threshold);
 
 // Initialization for the timer
-uint8_t sample_time = 20;
+uint8_t sample_time = 5;
 uint32_t time, last_time;
 
 // Initialization of Odometry
@@ -67,7 +67,7 @@ uint8_t i_position = 0;
 // position_t setpoint_position[nb_move] = {{10, 0, 0}, {10, 10, 0}, {0, 10, 0}, {0, 0, 0}};
 // Go back and forth
 const uint8_t nb_move = 2;
-position_t setpoint_position[nb_move] = {{30, 0, M_PI_2}, {0, 0, 0}};
+position_t setpoint_position[nb_move] = {{5, 0, M_PI_2}, {0, 0, 0}};
 
 delta_move_t* delta_move;
 float step_threshold = 50;
@@ -78,6 +78,8 @@ Ramp rotation_ramp(2, 2, sample_time/1000.);
 
 float translation_speed;
 float rotation_speed;
+
+uint32_t start_time, stop_time;
 
 const float command_scale = 20;
 
@@ -103,7 +105,8 @@ void setup() {
   setpoint.set_current_position(odometry.get_position());
   setpoint.set_setpoint_position(&setpoint_position[i_position]);
 
-  // read_data(&ping, sizeof(ping));
+  read_data(&ping, sizeof(ping));
+  start_time = millis();
 }
 
 void loop() {
@@ -117,6 +120,42 @@ void timer(uint32_t time, uint8_t sample_time) {
   if (time - last_time > sample_time) {
     // Update last_time
     last_time += sample_time;
+    if (read_data_if(&ping, sizeof(ping))) {
+      if (!ping) {
+        stop_time = millis();
+        left_control.reference = 0;
+        right_control.reference = 0;
+      }
+      else {
+        start_time += millis() - stop_time;
+      }
+    }
+    else {
+      if (millis() - start_time < 2000) {
+        left_control.reference = -step_encoder2motor(cm2step(25));
+        right_control.reference = -step_encoder2motor(cm2step(25));
+      }
+      else if (millis() - start_time < 3000) {
+        left_control.reference = -step_encoder2motor(rad2step(1.7));
+        right_control.reference = step_encoder2motor(rad2step(1.7));
+      }
+      else if (millis() - start_time < 4000) {
+        left_control.reference = -step_encoder2motor(cm2step(30));
+        right_control.reference = -step_encoder2motor(cm2step(30));
+      }
+      else if (millis() - start_time < 5000) {
+        left_control.reference = -step_encoder2motor(rad2step(1.7));
+        right_control.reference = step_encoder2motor(rad2step(1.7));
+      }
+      else if (millis() - start_time < 7000) {
+        left_control.reference = -step_encoder2motor(cm2step(25));
+        right_control.reference = -step_encoder2motor(cm2step(25));
+      }
+      else {
+        left_control.reference = 0;
+        right_control.reference = 0;
+      }
+    }
     control_system();
   }
 }
@@ -159,13 +198,13 @@ void control_system() {
   right_motor.set_pwm(right_control.command);
 
   // Debug
-  static uint8_t c = 10;
-  if (c++ == 10) {
-    // write_data(&right_control.command, sizeof(right_control.command));
-    // write_data(&right_control.measurement, sizeof(right_control.measurement));
-    // write_data(&left_control.command, sizeof(left_control.command));
-    // write_data(&left_control.measurement, sizeof(left_control.measurement));
-    write_data(odometry.get_position(), sizeof(position_t));
-    c = 0;
-  }
+  // static uint8_t c = 10;
+  // if (c++ == 10) {
+  //   // write_data(&right_control.reference, sizeof(right_control.reference));
+  //   // write_data(&right_control.measurement, sizeof(right_control.measurement));
+  //   // write_data(&left_control.reference, sizeof(left_control.reference));
+  //   // write_data(&left_control.measurement, sizeof(left_control.measurement));
+  //   write_data(odometry.get_position(), sizeof(position_t));
+  //   c = 0;
+  // }
 }
