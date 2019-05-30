@@ -2,7 +2,7 @@
 #define STEP_RESPONSE_HPP
 
 #include <stdint.h>
-#include "encoder.hpp"
+#include <Encoder.h>
 #include "motor.hpp"
 
 // Configuration structure for step response

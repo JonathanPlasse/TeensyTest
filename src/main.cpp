@@ -3,7 +3,7 @@
 #include "motor.hpp"
 #include <i2c_t3.h>
 #include <AS5601.h>
-#include "encoder.hpp"
+#include <Encoder.h>
 #include "step_response.hpp"
 #include "rst.hpp"
 #include "control.hpp"
@@ -21,8 +21,8 @@ uint16_t threshold = 1023;
 i2c_t3* w = &Wire;
 i2c_t3* w2 = &Wire2;
 AS5601 left_as(w), right_as(w2);
-Encoder left_encoder(&left_as, &right_as, center_distance_motor, center_distance_encoder);
-Encoder right_encoder(&right_as, &left_as, center_distance_motor, center_distance_encoder);
+Encoder left_encoder(20, 21);
+Encoder right_encoder(22, 23);
 float left_position, right_position;
 float last_left_position, last_right_position;
 
@@ -36,10 +36,10 @@ float right_r[order+1] = {0.04044927428889516, -0.037840578636721245};
 float right_s[order+1] = {1.0, -1.0};
 float right_t[order+1] = {0.04044927428889516, -0.037840578636721245};
 
-float min_command = -255, max_command = 255;
+float min_command = -200, max_command = 200;
 
 // Initialization of the system variables
-control_t left_control = {200, 0, 0};
+control_t left_control = {0, 0, 0};
 control_t right_control = {0, 0, 0};
 
 float error_threshold = 0;
@@ -95,7 +95,7 @@ void setup() {
   pinMode(13, OUTPUT);
   digitalWrite(13, HIGH);
 
-  step_response(&left_motor, &left_encoder);
+  // step_response(&left_motor, &left_encoder);
   // step_response(&right_motor, &right_encoder);
 
   // Set position pointer to Setpoint
@@ -107,7 +107,7 @@ void setup() {
 
 void loop() {
   // Execute timer
-  // timer(millis(), sample_time);
+  timer(millis(), sample_time);
 }
 
 void timer(uint32_t time, uint8_t sample_time) {
@@ -131,7 +131,7 @@ void control_system() {
   right_control.measurement = (right_position-last_right_position)/sample_time*1000;
 
   // Odometry
-  odometry.update(left_position, right_position);
+  odometry.update(left_as.read(), right_as.read());
 
   // // Update goal point
   // if (setpoint.isStopped()) {// && translation_ramp.isStopped() && rotation_ramp.isStopped()) {
@@ -146,8 +146,8 @@ void control_system() {
   // rotation_speed = rotation_ramp.compute(delta_move->delta_rotation);
   //
   // // Update reference
-  // left_control.reference = cm2step(translation_speed) - rad2step(rotation_speed);
-  // right_control.reference = cm2step(translation_speed) + rad2step(rotation_speed);
+  // left_control.reference = step_encoder2motor(cm2step(translation_speed) - rad2step(rotation_speed));
+  // right_control.reference = step_encoder2motor(cm2step(translation_speed) + rad2step(rotation_speed));
 
   // Compute control command
   left_rst.compute();
