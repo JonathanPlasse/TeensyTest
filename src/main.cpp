@@ -77,7 +77,7 @@ float rotation_threshold = 0.02;
 Setpoint setpoint(translation_threshold, rotation_threshold, true, true, true);
 
 Ramp translation_ramp(200, 200, sample_time/1000.);
-Ramp rotation_ramp(7, 7, sample_time/1000.);
+Ramp rotation_ramp(2, 10, sample_time/1000.);
 
 float translation_speed;
 float rotation_speed;
@@ -189,14 +189,14 @@ void control_system() {
 
   stop_bool = setpoint.isStopped();
   // Debug
-  // static uint8_t c = 10;
-  // if (c++ == 10) {
-  //   // write_data(&right_control.reference, sizeof(right_control.reference));
-  //   // write_data(&right_control.measurement, sizeof(right_control.measurement));
-  //   // write_data(&left_control.reference, sizeof(left_control.reference));
-  //   // write_data(&left_control.measurement, sizeof(left_control.measurement));
-  //   write_data(odometry.get_position(), sizeof(position_t));
-  //   write_data(&stop_bool, sizeof(stop_bool));
-  //   c = 0;
-  // }
+  static uint8_t c = 10;
+  if (c++ == 10) {
+    // write_data(&right_control.reference, sizeof(right_control.reference));
+    // write_data(&right_control.measurement, sizeof(right_control.measurement));
+    // write_data(&left_control.reference, sizeof(left_control.reference));
+    // write_data(&left_control.measurement, sizeof(left_control.measurement));
+    write_data(odometry.get_position(), sizeof(position_t));
+    write_data(&stop_bool, sizeof(stop_bool));
+    c = 0;
+  }
 }
