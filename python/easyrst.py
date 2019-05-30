@@ -103,11 +103,11 @@ class EasyRst(QWidget):
     def initControl(self):
         self.ts = 0.005
         # Right motor
-        # self.k = 115
-        # self.tau = 0.05
+        self.k = 60
+        self.tau = 0.025
         # Left motor
-        self.k = 115
-        self.tau = 0.075
+        # self.k = 62
+        # self.tau = 0.025
 
         # Position control
         # self.gd = cnt.tf(self.k, [self.tau, 1, 0]).sample(self.ts)

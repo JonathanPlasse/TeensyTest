@@ -30,12 +30,12 @@ float last_left_position, last_right_position;
 // Initialization of the RST setting
 const uint8_t order = 1;
 
-float left_r[order+1] = {0.04044927428889516, -0.037840578636721245};
+float left_r[order+1] = {0.026693494674808037, -0.02185478499738868};
 float left_s[order+1] = {1.0, -1.0};
-float left_t[order+1] = {0.04044927428889516, -0.037840578636721245};
-float right_r[order+1] = {0.04044927428889516, -0.037840578636721245};
+float left_t[order+1] = {0.026693494674808037, -0.02185478499738868};
+float right_r[order+1] = {0.027583277830634974, -0.022583277830634973};
 float right_s[order+1] = {1.0, -1.0};
-float right_t[order+1] = {0.04044927428889516, -0.037840578636721245};
+float right_t[order+1] = {0.027583277830634974, -0.022583277830634973};
 
 float min_command = -200, max_command = 200;
 
@@ -96,7 +96,7 @@ void setup() {
   pinMode(13, OUTPUT);
   digitalWrite(13, HIGH);
 
-  step_response(&left_motor, &left_encoder);
+  // step_response(&left_motor, &left_encoder);
   // step_response(&right_motor, &right_encoder);
 
   // Set position pointer to Setpoint
@@ -108,7 +108,7 @@ void setup() {
 
 void loop() {
   // Execute timer
-  // timer(millis(), sample_time);
+  timer(millis(), sample_time);
 }
 
 void timer(uint32_t time, uint8_t sample_time) {

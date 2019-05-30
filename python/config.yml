@@ -3,12 +3,12 @@ port_name: '/dev/ttyACM0'
 # Baud rate of the serial connection
 baud_rate: 115200
 # PWM of the step
-pwm: 50
+pwm: 150
 # Time sample in milliseconds
 ts: 5
 # Number of step to run
-nb_measure: 1
+nb_measure: 5
 # Number of sample taken per step
 nb_sample: 200
 # Waiting time between each measures in milliseconds
-wait_time: 1500
+wait_time: 1000
