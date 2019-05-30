@@ -58,22 +58,23 @@ uint32_t time, last_time;
 
 // Initialization of Odometry
 Odometry odometry;
-position_t init_position;
+position_t init_position, setpoint_position;
+bool init_bool, stop_bool;
 
 // Initialization of Setpoint
-uint8_t i_position = 0;
+// uint8_t i_position = 0;
 
 // square move
 // const uint8_t nb_move = 4;
 // position_t setpoint_position[nb_move] = {{10, 0, 0}, {10, 10, 0}, {0, 10, 0}, {0, 0, 0}};
 // Go back and forth
-const uint8_t nb_move = 2;
-position_t setpoint_position[nb_move] = {{20, 0, -M_PI_2}, {0, 0, 0}};
+// const uint8_t nb_move = 2;
+// position_t setpoint_position[nb_move] = {{20, 0, -M_PI_2}, {0, 0, 0}};
 
 delta_move_t* delta_move;
 float translation_threshold = 0.2;
 float rotation_threshold = 0.02;
-Setpoint setpoint(translation_threshold, rotation_threshold, true, false, true);
+Setpoint setpoint(translation_threshold, rotation_threshold, true, true, true);
 
 Ramp translation_ramp(200, 200, sample_time/1000.);
 Ramp rotation_ramp(7, 7, sample_time/1000.);
@@ -88,8 +89,8 @@ const float speed_scale = 5;
 bool ping;
 
 void setup() {
-  left_as.initWire(threshold, 1);
-  right_as.initWire(threshold, -1);
+  left_as.initWire();
+  right_as.initWire();
 
   // Set rst coefficient
   left_rst.set_rst(left_r, left_s, left_t, order);
@@ -110,13 +111,19 @@ void setup() {
       digitalWrite(13, LOW);
     }
   }
+  read_data(&init_bool, sizeof(init_bool));
   digitalWrite(13, HIGH);
 
+  left_as.initializeAngle(threshold, 1);
+  right_as.initializeAngle(threshold, -1);
+
   odometry.set_position(&init_position);
+  setpoint_position = init_position;
 
   // Set position pointer to Setpoint
   setpoint.set_current_position(odometry.get_position());
-  setpoint.set_setpoint_position(&setpoint_position[i_position]);
+  // setpoint.set_setpoint_position(&setpoint_position[i_position]);
+  setpoint.set_setpoint_position(&setpoint_position);
 
   // start_time = stop_time = millis();
 }
@@ -133,6 +140,19 @@ void timer(uint32_t time, uint8_t sample_time) {
     // Update last_time
     last_time += sample_time;
     control_system();
+
+    if (read_data_if(&init_position, sizeof(init_position))) {
+      read_data(&init_bool, sizeof(init_bool));
+      if (init_bool) {
+        left_as.initializeAngle(threshold, 1);
+        right_as.initializeAngle(threshold, -1);
+
+        odometry.set_position(&init_position);
+        setpoint.set_current_position(odometry.get_position());
+      }
+      setpoint_position = init_position;
+      setpoint.set_setpoint_position(&setpoint_position);
+    }
   }
 }
 
@@ -167,21 +187,16 @@ void control_system() {
   left_motor.set_pwm(left_control.command);
   right_motor.set_pwm(right_control.command);
 
-
-
-  // Update goal point
-  if (setpoint.isStopped()) {
-    i_position = (i_position+1)%nb_move;
-    setpoint.set_setpoint_position(&setpoint_position[i_position]);
-  }
+  stop_bool = setpoint.isStopped();
   // Debug
-  static uint8_t c = 10;
-  if (c++ == 10) {
-    // write_data(&right_control.reference, sizeof(right_control.reference));
-    // write_data(&right_control.measurement, sizeof(right_control.measurement));
-    // write_data(&left_control.reference, sizeof(left_control.reference));
-    // write_data(&left_control.measurement, sizeof(left_control.measurement));
-    write_data(odometry.get_position(), sizeof(position_t));
-    c = 0;
-  }
+  // static uint8_t c = 10;
+  // if (c++ == 10) {
+  //   // write_data(&right_control.reference, sizeof(right_control.reference));
+  //   // write_data(&right_control.measurement, sizeof(right_control.measurement));
+  //   // write_data(&left_control.reference, sizeof(left_control.reference));
+  //   // write_data(&left_control.measurement, sizeof(left_control.measurement));
+  //   write_data(odometry.get_position(), sizeof(position_t));
+  //   write_data(&stop_bool, sizeof(stop_bool));
+  //   c = 0;
+  // }
 }

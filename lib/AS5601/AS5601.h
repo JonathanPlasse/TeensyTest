@@ -59,13 +59,16 @@ class AS5601
             wireChannel = i2cChannel;
         }
 
-        void initWire(uint16_t step_threshold, int8_t sign) {
+        void initWire() {
           if (wireChannel == &Wire) {
             wireChannel->begin(I2C_MASTER,0x00,I2C_PINS_7_8, I2C_PULLUP_EXT, 100000);
           }
           else if (wireChannel == &Wire2) {
             wireChannel->begin(I2C_MASTER,0x00,I2C_PINS_3_4, I2C_PULLUP_EXT, 100000);
           }
+        }
+
+        void initializeAngle(uint16_t step_threshold, int8_t sign) {
           angle = lastAngle = initAngle = this->getAngle();
           threshold = step_threshold;
           direction = sign;
