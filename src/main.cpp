@@ -13,7 +13,7 @@
 #include "ramp.hpp"
 
 // Motors
-Motor left_motor(28, 29), right_motor(31, 30);
+Motor left_motor(31, 30), right_motor(28, 29);
 int16_t pwm;
 
 // Encoders
@@ -96,7 +96,7 @@ void setup() {
   pinMode(13, OUTPUT);
   digitalWrite(13, HIGH);
 
-  // step_response(&left_motor, &left_encoder);
+  step_response(&left_motor, &left_encoder);
   // step_response(&right_motor, &right_encoder);
 
   // Set position pointer to Setpoint
@@ -108,7 +108,7 @@ void setup() {
 
 void loop() {
   // Execute timer
-  timer(millis(), sample_time);
+  // timer(millis(), sample_time);
 }
 
 void timer(uint32_t time, uint8_t sample_time) {
