@@ -9,7 +9,8 @@ typedef enum {STOP, ORIENT, MOVE, TURN} State;
 class Setpoint {
 public:
   // Initialize Setpoint class
-  Setpoint(float step_threshold, bool orient, bool turn, bool backwards);
+  Setpoint(float translation_threshold, float rotation_threshold,
+    bool orient, bool turn, bool backwards);
 
   // Set current_position pointer
   void set_current_position(const position_t* current_position);
@@ -21,10 +22,11 @@ public:
   bool isStopped() const;
 
   // Update reference
-  delta_move_t* update();
+  delta_move_t* update(bool stop_translation, bool stop_rotation);
 
 private:
-  float _step_threshold;
+  float _translation_threshold;
+  float _rotation_threshold;
   bool _orient, _turn, _backwards;
   const position_t* _current_position;
   const position_t* _setpoint_position;

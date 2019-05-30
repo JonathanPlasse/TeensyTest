@@ -1,8 +1,10 @@
 #include "setpoint.hpp"
 #include <math.h>
 
-Setpoint::Setpoint(float step_threshold, bool orient, bool turn, bool backwards) :
-_step_threshold(step_threshold), _delta_move({0, 0}), _state(STOP),
+Setpoint::Setpoint(float translation_threshold, float rotation_threshold,
+bool orient, bool turn, bool backwards) :
+_translation_threshold(translation_threshold), _rotation_threshold(rotation_threshold),
+_delta_move({0, 0}), _state(STOP),
 _orient(orient), _turn(turn), _backwards(backwards) {}
 
 void Setpoint::set_current_position(const position_t* current_position) {
@@ -12,7 +14,7 @@ void Setpoint::set_current_position(const position_t* current_position) {
 void Setpoint::set_setpoint_position(const position_t* setpoint_position) {
   _setpoint_position = setpoint_position;
   if (_orient) {
-    _state = TURN;
+    _state = ORIENT;
   }
   else {
     _state = MOVE;
@@ -23,7 +25,7 @@ bool Setpoint::isStopped() const {
   return _state == STOP;
 }
 
-delta_move_t* Setpoint::update() {
+delta_move_t* Setpoint::update(bool stop_translation, bool stop_rotation) {
   float delta_x = _setpoint_position->x - _current_position->x;
   float delta_y = _setpoint_position->y - _current_position->y;
 
@@ -41,10 +43,12 @@ delta_move_t* Setpoint::update() {
         _delta_move.delta_rotation = pi_modulo(_delta_move.delta_rotation + M_PI);
       }
 
-      if (fabsf(_delta_move.delta_rotation) <= step_encoder2rad(_step_threshold)) {
+      if (fabsf(_delta_move.delta_rotation) <= _rotation_threshold) {
         _delta_move.delta_translation = 0;
         _delta_move.delta_rotation = 0;
-        _state = MOVE;
+        if (stop_rotation) {
+          _state = MOVE;
+        }
       }
 
       break;
@@ -58,15 +62,16 @@ delta_move_t* Setpoint::update() {
         _delta_move.delta_rotation = pi_modulo(_delta_move.delta_rotation + M_PI);
       }
 
-      if (fabsf(_delta_move.delta_translation) <= step_encoder2cm(_step_threshold)) {
+      if (fabsf(_delta_move.delta_translation) <= _translation_threshold) {
         _delta_move.delta_translation = 0;
         _delta_move.delta_rotation = 0;
-
-        if (_turn) {
-          _state = TURN;
-        }
-        else {
-          _state = STOP;
+        if (stop_translation) {
+          if (_turn) {
+            _state = TURN;
+          }
+          else {
+            _state = STOP;
+          }
         }
       }
 
@@ -75,10 +80,12 @@ delta_move_t* Setpoint::update() {
       _delta_move.delta_translation = 0;
       _delta_move.delta_rotation = _setpoint_position->theta - _current_position->theta;
 
-      if (fabsf(_delta_move.delta_rotation) <= step_encoder2rad(_step_threshold)) {
+      if (fabsf(_delta_move.delta_rotation) <= _rotation_threshold) {
         _delta_move.delta_translation = 0;
         _delta_move.delta_rotation = 0;
-        _state = STOP;
+        if (stop_rotation) {
+          _state = STOP;
+        }
       }
       break;
   }

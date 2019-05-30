@@ -6,7 +6,7 @@
 
 // Center distance between the two wheel
 const float center_distance_motor = 14.4;
-const float center_distance_encoder = 24.1;
+const float center_distance_encoder = 24;
 
 // Count per revolution of encoder
 const uint32_t resolution_motor = 1633;

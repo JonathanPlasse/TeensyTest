@@ -30,12 +30,12 @@ float last_left_position, last_right_position;
 // Initialization of the RST setting
 const uint8_t order = 2;
 
-float left_r[order+1] = {0.026693494674808037, -0.02185478499738868, 0.};
+float left_r[order+1] = {0.044489157791346726, -0.03642464166231447, 0.};
 float left_s[order+1] = {1., -1., 0.};
-float left_t[order+1] = {0.11567181025750149, -0.1836823839047111, 0.07284928332462894};
-float right_r[order+1] = {0.027583277830634974, -0.022583277830634973, 0.};
+float left_t[order+1] = {0.13346747337404016, -0.19825224056963686, 0.07284928332462894};
+float right_r[order+1] = {0.04597212971772495, -0.03763879638439162, 0.};
 float right_s[order+1] = {1., -1., 0.};
-float right_t[order+1] = {0.11952753726608487, -0.1898051300348681, 0.07527759276878324};
+float right_t[order+1] = {0.13791638915317483, -0.20486064858862474, 0.07527759276878324};
 
 float min_command = -255, max_command = 255;
 
@@ -58,6 +58,7 @@ uint32_t time, last_time;
 
 // Initialization of Odometry
 Odometry odometry;
+position_t init_position;
 
 // Initialization of Setpoint
 uint8_t i_position = 0;
@@ -67,21 +68,22 @@ uint8_t i_position = 0;
 // position_t setpoint_position[nb_move] = {{10, 0, 0}, {10, 10, 0}, {0, 10, 0}, {0, 0, 0}};
 // Go back and forth
 const uint8_t nb_move = 2;
-position_t setpoint_position[nb_move] = {{5, 0, M_PI_2}, {0, 0, 0}};
+position_t setpoint_position[nb_move] = {{20, 0, -M_PI_2}, {0, 0, 0}};
 
 delta_move_t* delta_move;
-float step_threshold = 100;
-Setpoint setpoint(step_threshold, true, false, true);
+float translation_threshold = 0.2;
+float rotation_threshold = 0.02;
+Setpoint setpoint(translation_threshold, rotation_threshold, true, false, true);
 
-Ramp translation_ramp(20, 20, sample_time/1000.);
-Ramp rotation_ramp(1, 1, sample_time/1000.);
+Ramp translation_ramp(200, 200, sample_time/1000.);
+Ramp rotation_ramp(5, 5, sample_time/1000.);
 
 float translation_speed;
 float rotation_speed;
 
 uint32_t start_time, stop_time;
 
-const float command_scale = 20;
+const float speed_scale = 5;
 
 bool ping;
 
@@ -100,12 +102,8 @@ void setup() {
   // step_response(&left_motor, &left_encoder);
   // step_response(&right_motor, &right_encoder);
 
-  // Set position pointer to Setpoint
-  setpoint.set_current_position(odometry.get_position());
-  setpoint.set_setpoint_position(&setpoint_position[i_position]);
-
-  while (!read_data_if(&ping, sizeof(ping))) {
-    if (millis() % 1000 < 500) {
+  while (!read_data_if(&init_position, sizeof(init_position))) {
+    if (millis() % 200 < 100) {
       digitalWrite(13, HIGH);
     }
     else {
@@ -114,12 +112,18 @@ void setup() {
   }
   digitalWrite(13, HIGH);
 
+  odometry.set_position(&init_position);
+
+  // Set position pointer to Setpoint
+  setpoint.set_current_position(odometry.get_position());
+  setpoint.set_setpoint_position(&setpoint_position[i_position]);
+
   // start_time = stop_time = millis();
 }
 
 void loop() {
   // Execute timer
-  // timer(millis(), sample_time);
+  timer(millis(), sample_time);
 }
 
 void timer(uint32_t time, uint8_t sample_time) {
@@ -146,20 +150,20 @@ void control_system() {
   odometry.update(left_as.read(), right_as.read());
 
   // // Update goal point
-  // if (setpoint.isStopped()) {// && translation_ramp.isStopped() && rotation_ramp.isStopped()) {
-  //   i_position = (i_position+1)%nb_move;
-  //   setpoint.set_setpoint_position(&setpoint_position[i_position]);
-  // }
+  if (setpoint.isStopped()) {
+    i_position = (i_position+1)%nb_move;
+    setpoint.set_setpoint_position(&setpoint_position[i_position]);
+  }
 
   // Update setpoint
-  delta_move = setpoint.update();
+  delta_move = setpoint.update(translation_ramp.isStopped(), rotation_ramp.isStopped());
 
   translation_speed = translation_ramp.compute(delta_move->delta_translation);
   rotation_speed = rotation_ramp.compute(delta_move->delta_rotation);
 
   // Update reference
-  left_control.reference = cm2step_motor(translation_speed) - rad2step_motor(rotation_speed);
-  right_control.reference = cm2step_motor(translation_speed) + rad2step_motor(rotation_speed);
+  left_control.reference = cm2step_motor(translation_speed)/speed_scale - rad2step_motor(rotation_speed)/speed_scale;
+  right_control.reference = cm2step_motor(translation_speed)/speed_scale + rad2step_motor(rotation_speed)/speed_scale;
 
   // Compute control command
   left_rst.compute();
