@@ -28,22 +28,28 @@ typedef struct {
 // Return an angle between [-pi, pi)
 float pi_modulo(float angle);
 
-// Convert step to cm
-float step2cm(float step);
+// Convert step encoder to cm
+float step_encoder2cm(float step_encoder);
 
-// Convert cm to step
-float cm2step(float cm);
+// Convert cm to step encoder
+float cm2step_encoder(float cm);
 
-// Convert step to rad
-float step2rad(float step);
+// Convert step encoder to rad
+float step_encoder2rad(float step_encoder);
 
-// Convert rad to step
-float rad2step(float rad);
+// Convert rad to step encoder
+float rad2step_encoder(float rad);
 
-// Convert step motor to step encoder
-float step_motor2encoder(float motor);
+// Convert step motor to cm
+float step_motor2cm(float step_motor);
 
-// Convert step encoder to step motor
-float step_encoder2motor(float encoder);
+// Convert cm to step motor
+float cm2step_motor(float cm);
+
+// Convert step motor to rad
+float step_motor2rad(float step_motor);
+
+// Convert rad to step motor
+float rad2step_motor(float rad);
 
 #endif

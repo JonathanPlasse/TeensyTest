@@ -13,28 +13,34 @@ float pi_modulo(float angle)
     return angle;
 }
 
-float step2cm(float step) {
-  return step * wheel_perimeter / resolution_encoder;
+float step_encoder2cm(float step_encoder) {
+  return step_encoder * wheel_perimeter / resolution_encoder;
 }
 
-float cm2step(float cm) {
+float cm2step_encoder(float cm) {
   return cm / wheel_perimeter * resolution_encoder;
 }
 
-float step2rad(float step) {
-  return step * wheel_perimeter / resolution_encoder / center_distance_motor * 2;
+float step_encoder2rad(float step_encoder) {
+  return step_encoder * wheel_perimeter / resolution_encoder / center_distance_encoder * 2;
 }
 
-float rad2step(float rad) {
-  return rad / wheel_perimeter * resolution_encoder * center_distance_motor / 2;
+float rad2step_encoder(float rad) {
+  return rad / wheel_perimeter * resolution_encoder * center_distance_encoder / 2;
 }
 
-float step_motor2encoder(float motor) {
-  return motor / resolution_motor * resolution_encoder
-    / center_distance_motor * center_distance_encoder;
+float step_motor2cm(float step_motor) {
+  return step_motor * wheel_perimeter / resolution_motor;
 }
 
-float step_encoder2motor(float encoder) {
-  return encoder / resolution_encoder * resolution_motor
-    / center_distance_encoder * center_distance_motor;
+float cm2step_motor(float cm) {
+  return cm / wheel_perimeter * resolution_motor;
+}
+
+float step_motor2rad(float step_motor) {
+  return step_motor * wheel_perimeter / resolution_motor / center_distance_motor * 2;
+}
+
+float rad2step_motor(float rad) {
+  return rad / wheel_perimeter * resolution_motor * center_distance_motor / 2;
 }

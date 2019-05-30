@@ -40,8 +40,8 @@ float right_t[order+1] = {0.027583277830634974, -0.022583277830634973};
 float min_command = -200, max_command = 200;
 
 // Initialization of the system variables
-control_t left_control = {0, 0, 0};
-control_t right_control = {0, 0, 0};
+control_t left_control = {1000, 0, 0};
+control_t right_control = {1000, 0, 0};
 
 float error_threshold = 0;
 float pwm_threshold = 0;
@@ -70,10 +70,10 @@ const uint8_t nb_move = 2;
 position_t setpoint_position[nb_move] = {{5, 0, M_PI_2}, {0, 0, 0}};
 
 delta_move_t* delta_move;
-float step_threshold = 50;
+float step_threshold = 100;
 Setpoint setpoint(step_threshold, true, false, true);
 
-Ramp translation_ramp(50, 50, sample_time/1000.);
+Ramp translation_ramp(20, 20, sample_time/1000.);
 Ramp rotation_ramp(2, 2, sample_time/1000.);
 
 float translation_speed;
@@ -106,7 +106,7 @@ void setup() {
   setpoint.set_setpoint_position(&setpoint_position[i_position]);
 
   read_data(&ping, sizeof(ping));
-  start_time = millis();
+  // start_time = stop_time = millis();
 }
 
 void loop() {
@@ -120,42 +120,6 @@ void timer(uint32_t time, uint8_t sample_time) {
   if (time - last_time > sample_time) {
     // Update last_time
     last_time += sample_time;
-    if (read_data_if(&ping, sizeof(ping))) {
-      if (!ping) {
-        stop_time = millis();
-        left_control.reference = 0;
-        right_control.reference = 0;
-      }
-      else {
-        start_time += millis() - stop_time;
-      }
-    }
-    else {
-      if (millis() - start_time < 2000) {
-        left_control.reference = -step_encoder2motor(cm2step(25));
-        right_control.reference = -step_encoder2motor(cm2step(25));
-      }
-      else if (millis() - start_time < 3000) {
-        left_control.reference = -step_encoder2motor(rad2step(1.7));
-        right_control.reference = step_encoder2motor(rad2step(1.7));
-      }
-      else if (millis() - start_time < 4000) {
-        left_control.reference = -step_encoder2motor(cm2step(30));
-        right_control.reference = -step_encoder2motor(cm2step(30));
-      }
-      else if (millis() - start_time < 5000) {
-        left_control.reference = -step_encoder2motor(rad2step(1.7));
-        right_control.reference = step_encoder2motor(rad2step(1.7));
-      }
-      else if (millis() - start_time < 7000) {
-        left_control.reference = -step_encoder2motor(cm2step(25));
-        right_control.reference = -step_encoder2motor(cm2step(25));
-      }
-      else {
-        left_control.reference = 0;
-        right_control.reference = 0;
-      }
-    }
     control_system();
   }
 }
@@ -178,16 +142,16 @@ void control_system() {
   //   i_position = (i_position+1)%nb_move;
   //   setpoint.set_setpoint_position(&setpoint_position[i_position]);
   // }
-  //
-  // // Update setpoint
-  // delta_move = setpoint.update();
-  //
-  // translation_speed = translation_ramp.compute(delta_move->delta_translation);
-  // rotation_speed = rotation_ramp.compute(delta_move->delta_rotation);
-  //
-  // // Update reference
-  // left_control.reference = step_encoder2motor(cm2step(translation_speed) - rad2step(rotation_speed));
-  // right_control.reference = step_encoder2motor(cm2step(translation_speed) + rad2step(rotation_speed));
+
+  // Update setpoint
+  delta_move = setpoint.update();
+
+  translation_speed = translation_ramp.compute(delta_move->delta_translation);
+  rotation_speed = rotation_ramp.compute(delta_move->delta_rotation);
+
+  // Update reference
+  left_control.reference = cm2step_motor(translation_speed) - rad2step_motor(rotation_speed);
+  right_control.reference = cm2step_motor(translation_speed) + rad2step_motor(rotation_speed);
 
   // Compute control command
   left_rst.compute();
@@ -198,13 +162,13 @@ void control_system() {
   right_motor.set_pwm(right_control.command);
 
   // Debug
-  // static uint8_t c = 10;
-  // if (c++ == 10) {
-  //   // write_data(&right_control.reference, sizeof(right_control.reference));
-  //   // write_data(&right_control.measurement, sizeof(right_control.measurement));
-  //   // write_data(&left_control.reference, sizeof(left_control.reference));
-  //   // write_data(&left_control.measurement, sizeof(left_control.measurement));
-  //   write_data(odometry.get_position(), sizeof(position_t));
-  //   c = 0;
-  // }
+  static uint8_t c = 10;
+  if (c++ == 10) {
+    // write_data(&right_control.reference, sizeof(right_control.reference));
+    // write_data(&right_control.measurement, sizeof(right_control.measurement));
+    // write_data(&left_control.reference, sizeof(left_control.reference));
+    // write_data(&left_control.measurement, sizeof(left_control.measurement));
+    write_data(odometry.get_position(), sizeof(position_t));
+    c = 0;
+  }
 }

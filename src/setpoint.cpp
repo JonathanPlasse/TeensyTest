@@ -41,7 +41,7 @@ delta_move_t* Setpoint::update() {
         _delta_move.delta_rotation = pi_modulo(_delta_move.delta_rotation + M_PI);
       }
 
-      if (fabsf(_delta_move.delta_rotation) <= step2rad(_step_threshold)) {
+      if (fabsf(_delta_move.delta_rotation) <= step_encoder2rad(_step_threshold)) {
         _delta_move.delta_translation = 0;
         _delta_move.delta_rotation = 0;
         _state = MOVE;
@@ -58,7 +58,7 @@ delta_move_t* Setpoint::update() {
         _delta_move.delta_rotation = pi_modulo(_delta_move.delta_rotation + M_PI);
       }
 
-      if (fabsf(_delta_move.delta_translation) <= step2cm(_step_threshold)) {
+      if (fabsf(_delta_move.delta_translation) <= step_encoder2cm(_step_threshold)) {
         _delta_move.delta_translation = 0;
         _delta_move.delta_rotation = 0;
 
@@ -75,7 +75,7 @@ delta_move_t* Setpoint::update() {
       _delta_move.delta_translation = 0;
       _delta_move.delta_rotation = _setpoint_position->theta - _current_position->theta;
 
-      if (fabsf(_delta_move.delta_rotation) <= step2rad(_step_threshold)) {
+      if (fabsf(_delta_move.delta_rotation) <= step_encoder2rad(_step_threshold)) {
         _delta_move.delta_translation = 0;
         _delta_move.delta_rotation = 0;
         _state = STOP;
