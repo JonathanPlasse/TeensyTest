@@ -12,7 +12,7 @@ const float center_distance_encoder = 240;
 const uint32_t resolution_motor = 1633;
 const uint32_t resolution_encoder = 4096;
 
-// Wheel diameter
+// Wheel diameter in mm
 const float wheel_perimeter = 45*M_PI;
 
 // Wheel diameter ratio (left/right)

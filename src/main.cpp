@@ -103,7 +103,7 @@ void setup() {
   // step_response(&left_motor, &left_encoder);
   // step_response(&right_motor, &right_encoder);
 
-  while (!read_data_if(&init_position, sizeof(init_position))) {
+  while (!read_position()) {
     if (millis() % 200 < 100) {
       digitalWrite(13, HIGH);
     }
@@ -111,21 +111,7 @@ void setup() {
       digitalWrite(13, LOW);
     }
   }
-  read_data(&init_bool, sizeof(init_bool));
   digitalWrite(13, HIGH);
-
-  left_as.initializeAngle(threshold, 1);
-  right_as.initializeAngle(threshold, -1);
-
-  odometry.set_position(&init_position);
-  setpoint_position = init_position;
-
-  // Set position pointer to Setpoint
-  setpoint.set_current_position(odometry.get_position());
-  // setpoint.set_setpoint_position(&setpoint_position[i_position]);
-  setpoint.set_setpoint_position(&setpoint_position);
-
-  // start_time = stop_time = millis();
 }
 
 void loop() {
@@ -139,20 +125,34 @@ void timer(uint32_t time, uint8_t sample_time) {
   if (time - last_time > sample_time) {
     // Update last_time
     last_time += sample_time;
+
+    // Control the robot
     control_system();
 
-    if (read_data_if(&init_position, sizeof(init_position))) {
-      read_data(&init_bool, sizeof(init_bool));
-      if (init_bool) {
-        left_as.initializeAngle(threshold, 1);
-        right_as.initializeAngle(threshold, -1);
+    // Read position from serial
+    read_position();
+  }
+}
 
-        odometry.set_position(&init_position);
-        setpoint.set_current_position(odometry.get_position());
-      }
-      setpoint_position = init_position;
-      setpoint.set_setpoint_position(&setpoint_position);
+bool read_position() {
+  // Check if new position sent
+  if (read_data_if(&init_position, sizeof(init_position))) {
+    // Read if it is new odometry origin
+    read_data(&init_bool, sizeof(init_bool));
+    if (init_bool) {
+      left_as.initializeAngle(threshold, 1);
+      right_as.initializeAngle(threshold, -1);
+
+      odometry.set_position(&init_position);
+      setpoint.set_current_position(odometry.get_position());
     }
+    setpoint_position = init_position;
+    setpoint.set_setpoint_position(&setpoint_position);
+
+    return true;
+  }
+  else {
+    return false;
   }
 }
 
