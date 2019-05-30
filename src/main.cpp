@@ -28,20 +28,20 @@ float left_position, right_position;
 float last_left_position, last_right_position;
 
 // Initialization of the RST setting
-const uint8_t order = 1;
+const uint8_t order = 2;
 
-float left_r[order+1] = {0.026693494674808037, -0.02185478499738868};
-float left_s[order+1] = {1.0, -1.0};
-float left_t[order+1] = {0.026693494674808037, -0.02185478499738868};
-float right_r[order+1] = {0.027583277830634974, -0.022583277830634973};
-float right_s[order+1] = {1.0, -1.0};
-float right_t[order+1] = {0.027583277830634974, -0.022583277830634973};
+float left_r[order+1] = {0.026693494674808037, -0.02185478499738868, 0.};
+float left_s[order+1] = {1., -1., 0.};
+float left_t[order+1] = {0.11567181025750149, -0.1836823839047111, 0.07284928332462894};
+float right_r[order+1] = {0.027583277830634974, -0.022583277830634973, 0.};
+float right_s[order+1] = {1., -1., 0.};
+float right_t[order+1] = {0.11952753726608487, -0.1898051300348681, 0.07527759276878324};
 
-float min_command = -200, max_command = 200;
+float min_command = -255, max_command = 255;
 
 // Initialization of the system variables
-control_t left_control = {1000, 0, 0};
-control_t right_control = {1000, 0, 0};
+control_t left_control = {0, 0, 0};
+control_t right_control = {0, 0, 0};
 
 float error_threshold = 0;
 float pwm_threshold = 0;
@@ -74,7 +74,7 @@ float step_threshold = 100;
 Setpoint setpoint(step_threshold, true, false, true);
 
 Ramp translation_ramp(20, 20, sample_time/1000.);
-Ramp rotation_ramp(2, 2, sample_time/1000.);
+Ramp rotation_ramp(1, 1, sample_time/1000.);
 
 float translation_speed;
 float rotation_speed;
@@ -96,7 +96,6 @@ void setup() {
   Serial.begin(9600); // USB is always 12 Mbit/sec
 
   pinMode(13, OUTPUT);
-  digitalWrite(13, HIGH);
 
   // step_response(&left_motor, &left_encoder);
   // step_response(&right_motor, &right_encoder);
@@ -105,13 +104,22 @@ void setup() {
   setpoint.set_current_position(odometry.get_position());
   setpoint.set_setpoint_position(&setpoint_position[i_position]);
 
-  read_data(&ping, sizeof(ping));
+  while (!read_data_if(&ping, sizeof(ping))) {
+    if (millis() % 1000 < 500) {
+      digitalWrite(13, HIGH);
+    }
+    else {
+      digitalWrite(13, LOW);
+    }
+  }
+  digitalWrite(13, HIGH);
+
   // start_time = stop_time = millis();
 }
 
 void loop() {
   // Execute timer
-  timer(millis(), sample_time);
+  // timer(millis(), sample_time);
 }
 
 void timer(uint32_t time, uint8_t sample_time) {
