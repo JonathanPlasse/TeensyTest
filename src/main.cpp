@@ -187,15 +187,11 @@ void control_system() {
   left_motor.set_pwm(left_control.command);
   right_motor.set_pwm(right_control.command);
 
-  stop_bool = setpoint.isStopped();
-  // Debug
+  // Send odometry and if robot is stopped
   static uint8_t c = 10;
   if (c++ == 10) {
-    // write_data(&right_control.reference, sizeof(right_control.reference));
-    // write_data(&right_control.measurement, sizeof(right_control.measurement));
-    // write_data(&left_control.reference, sizeof(left_control.reference));
-    // write_data(&left_control.measurement, sizeof(left_control.measurement));
     write_data(odometry.get_position(), sizeof(position_t));
+    stop_bool = setpoint.isStopped();
     write_data(&stop_bool, sizeof(stop_bool));
     c = 0;
   }
