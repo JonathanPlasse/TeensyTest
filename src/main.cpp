@@ -72,7 +72,7 @@ bool init_bool, stop_bool;
 // position_t setpoint_position[nb_move] = {{20, 0, -M_PI_2}, {0, 0, 0}};
 
 delta_move_t* delta_move;
-float translation_threshold = 2;
+float translation_threshold = 5;
 float rotation_threshold = 0.02;
 Setpoint setpoint(translation_threshold, rotation_threshold, true, true, true);
 
@@ -103,7 +103,7 @@ void setup() {
   // step_response(&left_motor, &left_encoder);
   // step_response(&right_motor, &right_encoder);
 
-  while (!read_position()) {
+  while (!read_position(true)) {
     if (millis() % 200 < 100) {
       digitalWrite(13, HIGH);
     }
@@ -111,6 +111,9 @@ void setup() {
       digitalWrite(13, LOW);
     }
   }
+  left_as.initializeAngle(threshold, 1);
+  right_as.initializeAngle(threshold, -1);
+  
   digitalWrite(13, HIGH);
 }
 
@@ -130,19 +133,16 @@ void timer(uint32_t time, uint8_t sample_time) {
     control_system();
 
     // Read position from serial
-    read_position();
+    read_position(false);
   }
 }
 
-bool read_position() {
+bool read_position(bool forced_init) {
   // Check if new position sent
   if (read_data_if(&init_position, sizeof(init_position))) {
     // Read if it is new odometry origin
     read_data(&init_bool, sizeof(init_bool));
-    if (init_bool) {
-      left_as.initializeAngle(threshold, 1);
-      right_as.initializeAngle(threshold, -1);
-
+    if (forced_init || init_bool) {
       odometry.set_position(&init_position);
       setpoint.set_current_position(odometry.get_position());
     }

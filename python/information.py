@@ -12,7 +12,7 @@ def print_odometry():
 
 if __name__ == "__main__":
     # Initialize serial
-    bser = BinSerial("/dev/ttyACM1", 9600)
+    bser = BinSerial("/dev/ttyACM0", 9600)
 
     # Prepare odometry thread
     odometry_thread = threading.Thread(target=print_odometry, daemon=True)

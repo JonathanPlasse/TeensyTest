@@ -9,6 +9,7 @@ _orient(orient), _turn(turn), _backwards(backwards) {}
 
 void Setpoint::set_current_position(const position_t* current_position) {
   _current_position = current_position;
+  _state = STOP;
 }
 
 void Setpoint::set_setpoint_position(const position_t* setpoint_position) {
